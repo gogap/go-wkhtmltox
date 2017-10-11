@@ -13,8 +13,6 @@ func execCommand(timeout time.Duration, data []byte, name string, args ...string
 
 	cmd := exec.Command(name, args...)
 
-	fmt.Println(cmd.Args)
-
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return
