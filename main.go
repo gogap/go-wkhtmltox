@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+	"sync"
 	"text/template"
 
 	"github.com/gogap/config"
@@ -14,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/rs/cors"
+	"github.com/urfave/cli"
 	"github.com/urfave/negroni"
 )
 
@@ -64,8 +67,45 @@ func main() {
 		}
 	}()
 
+	app := cli.NewApp()
+
+	app.Commands = cli.Commands{
+		cli.Command{
+			Name:   "run",
+			Usage:  "run go-wkhtmltox service",
+			Action: run,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "config,c",
+					Usage: "config filename",
+					Value: "app.conf",
+				},
+				cli.StringFlag{
+					Name:  "cwd",
+					Usage: "change work dir",
+				},
+			},
+		},
+	}
+
+	err = app.Run(os.Args)
+}
+
+func run(ctx *cli.Context) (err error) {
+
+	cwd := ctx.String("cwd")
+	if len(cwd) != 0 {
+		err = os.Chdir(cwd)
+	}
+
+	if err != nil {
+		return
+	}
+
+	configFile := ctx.String("config")
+
 	conf := config.NewConfig(
-		config.ConfigFile("app.conf"),
+		config.ConfigFile(configFile),
 	)
 
 	serviceConf := conf.GetConfig("service")
@@ -129,19 +169,40 @@ func main() {
 	enableHTTP := serviceConf.GetBoolean("http.enabled", true)
 	enableHTTPS := serviceConf.GetBoolean("https.enabled", false)
 
+	wg := sync.WaitGroup{}
+
 	if enableHTTP {
+		wg.Add(1)
+
 		listenAddr := serviceConf.GetString("address", "127.0.0.1:8080")
-		http.ListenAndServe(listenAddr, n)
+		go func() {
+			defer wg.Done()
+			e := http.ListenAndServe(listenAddr, n)
+			if e != nil {
+				log.Printf("[go-wkhtmltox]: %s\n", e.Error())
+			}
+		}()
 	}
 
 	if enableHTTPS {
+		wg.Add(1)
 
 		listenAddr := serviceConf.GetString("address", "127.0.0.1:443")
 		certFile := serviceConf.GetString("https.cert")
 		keyFile := serviceConf.GetString("https.key")
 
-		http.ListenAndServeTLS(listenAddr, certFile, keyFile, n)
+		go func() {
+			defer wg.Done()
+			e := http.ListenAndServeTLS(listenAddr, certFile, keyFile, n)
+			if e != nil {
+				log.Printf("[go-wkhtmltox]: %s\n", e.Error())
+			}
+		}()
 	}
+
+	wg.Wait()
+
+	return
 }
 
 func writeResp(rw http.ResponseWriter, converArgs ConvertArgs, resp ConvertResponse) {
