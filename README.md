@@ -190,6 +190,10 @@ curl -X POST \
     }'
 ```
 
+#### Screenshot
+
+![bing.com](https://github.com/gogap/repo-assets/raw/master/go-wkhtmltox/go-wkhtmltox-render-screenshot.png)
+
 ### Template
 
 The defualt template is 
