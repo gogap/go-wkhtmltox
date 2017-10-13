@@ -78,23 +78,21 @@ go-wkhtmltox
 
 ```json
 {
-	"options": {
-		"to" : "image",
-		"fetcher": {
-			"name": "http",
-			"options": {
-			}
-		},
-		"converter":{
-			"uri": "https://www.bing.com"
-		},
-		"template": "render-data"
-	}
+	"to" : "image",
+	"fetcher": {
+		"name": "http",
+		"options": {
+		}
+	},
+	"converter":{
+		"uri": "https://www.bing.com"
+	},
+	"template": "render-data"
 }
 ```
 
 
-### options
+### Request Args
 
 Field|Values|Usage
 :--|:--|:--
@@ -107,7 +105,7 @@ converter||the options for converter
 
 ### converter
 
-the options.converter is the following json struct
+the converter is the following json struct
 
 
 ```json
@@ -167,13 +165,11 @@ curl -X POST \
   -H 'cache-control: no-cache' \
   -H 'content-type: application/json' \
   -d '{
-	"options": {
 		"to" : "image",
 		"converter":{
 			"uri": "https://www.bing.com"
-		}
-	}
-}'
+	    }
+    }'
 ```
 
 
@@ -187,13 +183,11 @@ curl -X POST \
   -H 'cache-control: no-cache' \
   -H 'content-type: application/json' \
   -d '{
-	"options": {
 		"to" : "pdf",
 		"converter":{
 			"uri": "https://www.bing.com"
 		}
-	}
-}'
+    }'
 ```
 
 ### Template
@@ -213,13 +207,11 @@ we could add `template` to render as different response, we have another example
 
 ```json
 {
-	"options": {
-		"to" : "image",
-		"converter":{
-			"uri": "https://www.bing.com"
-		},
-		"template": "render-data"
-	}
+	"to" : "image",
+	"converter":{
+		"uri": "https://www.bing.com"
+	},
+	"template": "render-data"
 }
 ```
 

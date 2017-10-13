@@ -40,15 +40,11 @@ type ConvertData struct {
 	Data []byte `json:"data"`
 }
 
-type WKHtmlToXOptions struct {
+type ConvertArgs struct {
 	To        string                   `json:"to"`
 	Fetcher   wkhtmltox.FetcherOptions `json:"fetcher"`
 	Converter json.RawMessage          `json:"converter"`
 	Template  string                   `json:"template"`
-}
-
-type ConvertArgs struct {
-	Options WKHtmlToXOptions `json:"options"`
 }
 
 type ConvertResponse struct {
@@ -210,12 +206,12 @@ func run(ctx *cli.Context) (err error) {
 func writeResp(rw http.ResponseWriter, converArgs ConvertArgs, resp ConvertResponse) {
 
 	var tmpl *template.Template
-	if len(converArgs.Options.Template) == 0 {
+	if len(converArgs.Template) == 0 {
 		tmpl = defaultTmpl
 	} else {
 		var exist bool
 
-		tmpl, exist = renderTmpls[converArgs.Options.Template]
+		tmpl, exist = renderTmpls[converArgs.Template]
 		if !exist {
 			tmpl = defaultTmpl
 		}
@@ -226,7 +222,7 @@ func writeResp(rw http.ResponseWriter, converArgs ConvertArgs, resp ConvertRespo
 		"Message": resp.Message,
 		"Result":  resp.Result,
 		"Header":  rw.Header(),
-		"To":      converArgs.Options.To,
+		"To":      converArgs.To,
 	}
 
 	err := tmpl.Execute(rw, args)
@@ -251,12 +247,12 @@ func handleHtmlToX(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if len(args.Options.Converter) == 0 {
-		writeResp(rw, args, ConvertResponse{http.StatusBadRequest, "options.converter is nil", nil})
+	if len(args.Converter) == 0 {
+		writeResp(rw, args, ConvertResponse{http.StatusBadRequest, "converter is nil", nil})
 		return
 	}
 
-	to := strings.ToUpper(args.Options.To)
+	to := strings.ToUpper(args.To)
 
 	var opts wkhtmltox.ConvertOptions
 
@@ -269,7 +265,7 @@ func handleHtmlToX(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = json.Unmarshal(args.Options.Converter, opts)
+	err = json.Unmarshal(args.Converter, opts)
 
 	if err != nil {
 		writeResp(rw, args, ConvertResponse{http.StatusBadRequest, err.Error(), nil})
@@ -278,7 +274,7 @@ func handleHtmlToX(rw http.ResponseWriter, req *http.Request) {
 
 	var convData []byte
 
-	convData, err = htmlToX.Convert(args.Options.Fetcher, opts)
+	convData, err = htmlToX.Convert(args.Fetcher, opts)
 
 	if err != nil {
 		writeResp(rw, args, ConvertResponse{http.StatusBadRequest, err.Error(), nil})
