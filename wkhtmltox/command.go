@@ -1,9 +1,8 @@
-package wkhtml
+package wkhtmltox
 
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"os/exec"
 	"time"

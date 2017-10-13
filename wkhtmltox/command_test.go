@@ -1,4 +1,4 @@
-package wkhtml
+package wkhtmltox
 
 import (
 	"testing"

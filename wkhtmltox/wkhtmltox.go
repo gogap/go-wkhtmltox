@@ -1,4 +1,4 @@
-package wkhtml
+package wkhtmltox
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gogap/go-wkhtmltopdf/wkhtml/fetcher"
+	"github.com/gogap/go-wkhtmltox/wkhtmltox/fetcher"
 )
 
 type ToFormat string
@@ -29,7 +29,7 @@ type CropOptions struct {
 
 type ExtendParams map[string]string
 
-func (p ExtendParams) ToCommandArgs() []string {
+func (p ExtendParams) toCommandArgs() []string {
 	var args []string
 
 	for k, v := range p {
@@ -59,6 +59,8 @@ func (p ExtendParams) ToCommandArgs() []string {
 
 type ConvertOptions interface {
 	convertOptions()
+	toCommandArgs() []string
+	uri() string
 }
 
 type ToImageOptions struct {
@@ -71,9 +73,13 @@ type ToImageOptions struct {
 	Extend  ExtendParams `json:"extend"`  // Other params
 }
 
+func (p *ToImageOptions) uri() string {
+	return p.URI
+}
+
 func (*ToImageOptions) convertOptions() {}
 
-func (p *ToImageOptions) ToCommandArgs() []string {
+func (p *ToImageOptions) toCommandArgs() []string {
 
 	var args []string
 
@@ -101,7 +107,7 @@ func (p *ToImageOptions) ToCommandArgs() []string {
 		args = append(args, []string{"--height", strconv.Itoa(p.Height)}...)
 	}
 
-	extArgs := p.Extend.ToCommandArgs()
+	extArgs := p.Extend.toCommandArgs()
 
 	args = append(args, extArgs...)
 
@@ -121,9 +127,13 @@ type ToPDFOptions struct {
 	Extend         ExtendParams `json:"extend"`           // Other params
 }
 
+func (p *ToPDFOptions) uri() string {
+	return p.URI
+}
+
 func (*ToPDFOptions) convertOptions() {}
 
-func (p *ToPDFOptions) ToCommandArgs() []string {
+func (p *ToPDFOptions) toCommandArgs() []string {
 	var args []string
 
 	if p.NoCollate {
@@ -154,7 +164,7 @@ func (p *ToPDFOptions) ToCommandArgs() []string {
 		args = append(args, "--print-media-type")
 	}
 
-	extArgs := p.Extend.ToCommandArgs()
+	extArgs := p.Extend.toCommandArgs()
 
 	args = append(args, extArgs...)
 
@@ -166,14 +176,14 @@ type FetcherOptions struct {
 	Params json.RawMessage `json:"params"` // Optional
 }
 
-type WKHtml struct {
+type WKHtmlToX struct {
 	timeout  time.Duration
 	fetchers map[string]fetcher.Fetcher
 }
 
-func New(conf config.Configuration) (wkHtml *WKHtml, err error) {
+func New(conf config.Configuration) (wkHtmlToX *WKHtmlToX, err error) {
 
-	wk := &WKHtml{
+	wk := &WKHtmlToX{
 		fetchers: make(map[string]fetcher.Fetcher),
 	}
 
@@ -184,7 +194,7 @@ func New(conf config.Configuration) (wkHtml *WKHtml, err error) {
 	fetchersConf := conf.GetConfig("fetchers")
 
 	if fetchersConf == nil || len(fetchersConf.Keys()) == 0 {
-		wkHtml = wk
+		wkHtmlToX = wk
 		return
 	}
 
@@ -224,22 +234,30 @@ func New(conf config.Configuration) (wkHtml *WKHtml, err error) {
 		wk.fetchers[fName] = f
 	}
 
-	wkHtml = wk
+	wkHtmlToX = wk
 
 	return
 }
 
-func (p *WKHtml) ToPDF(fetcherOpts FetcherOptions, convertOpts ToPDFOptions) (data []byte, err error) {
-	return p.convert("wkhtmltopdf", fetcherOpts, convertOpts.URI, convertOpts.ToCommandArgs())
-}
+func (p *WKHtmlToX) Convert(fetcherOpts FetcherOptions, convertOpts ConvertOptions) (ret []byte, err error) {
 
-func (p *WKHtml) ToImage(fetcherOpts FetcherOptions, convertOpts ToImageOptions) (data []byte, err error) {
-	return p.convert("wkhtmltoimage", fetcherOpts, convertOpts.URI, convertOpts.ToCommandArgs())
-}
+	cmd := ""
 
-func (p *WKHtml) convert(cmd string, fetcherOpts FetcherOptions, uri string, args []string) (ret []byte, err error) {
+	switch convertOpts.(type) {
+	case *ToImageOptions:
+		{
+			cmd = "wkhtmltoimage"
+		}
+	case *ToPDFOptions:
+		{
+			cmd = "wkhtmltopdf"
+		}
+	default:
+		err = fmt.Errorf("unkown ConvertOptions type")
+		return
+	}
 
-	inputMethod := uri
+	inputMethod := convertOpts.uri()
 
 	var data []byte
 
@@ -254,9 +272,11 @@ func (p *WKHtml) convert(cmd string, fetcherOpts FetcherOptions, uri string, arg
 	}
 
 	if len(inputMethod) == 0 {
-		err = fmt.Errorf("non input method could be use")
+		err = fmt.Errorf("non input method could be use, please chekc your fetcher options or uri param")
 		return
 	}
+
+	args := convertOpts.toCommandArgs()
 
 	args = append(args, []string{"--quiet", inputMethod, "-"}...)
 
@@ -271,7 +291,7 @@ func (p *WKHtml) convert(cmd string, fetcherOpts FetcherOptions, uri string, arg
 	return
 }
 
-func (p *WKHtml) fetch(fetcherOpts FetcherOptions) (data []byte, err error) {
+func (p *WKHtmlToX) fetch(fetcherOpts FetcherOptions) (data []byte, err error) {
 	fetcher, exist := p.fetchers[fetcherOpts.Name]
 	if !exist {
 		err = fmt.Errorf("fetcher %s not exist", fetcherOpts.Name)
