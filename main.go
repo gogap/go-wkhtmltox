@@ -69,6 +69,8 @@ func main() {
 
 	app := cli.NewApp()
 
+	app.Usage = "A server for wkhtmltopdf and wkhtmltoimage"
+
 	app.Commands = cli.Commands{
 		cli.Command{
 			Name:   "run",
