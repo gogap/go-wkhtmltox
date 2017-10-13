@@ -176,7 +176,7 @@ func run(ctx *cli.Context) (err error) {
 	if enableHTTP {
 		wg.Add(1)
 
-		listenAddr := serviceConf.GetString("address", "127.0.0.1:8080")
+		listenAddr := serviceConf.GetString("http.address", "127.0.0.1:8080")
 		go func() {
 			defer wg.Done()
 			e := http.ListenAndServe(listenAddr, n)
@@ -189,7 +189,7 @@ func run(ctx *cli.Context) (err error) {
 	if enableHTTPS {
 		wg.Add(1)
 
-		listenAddr := serviceConf.GetString("address", "127.0.0.1:443")
+		listenAddr := serviceConf.GetString("http.address", "127.0.0.1:443")
 		certFile := serviceConf.GetString("https.cert")
 		keyFile := serviceConf.GetString("https.key")
 
