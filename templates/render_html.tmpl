@@ -2,9 +2,9 @@
 	<body>
 		{{if eq .Code 0}}
 		     {{if eq .To "image"}}
-		     	<img src="data:image/jpeg;base64,{{.Result.Data | base64Encode}}"  />
+		     	<img src="data:image/jpeg;base64,{{.Result.Data | base64Encode}}" width="100%" height="100%" />
 		     {{else if eq .To "pdf" }}
-		    	<embed src="data:application/pdf;base64,{{.Result.Data | base64Encode}}" type="application/pdf"/>
+		    	<embed src="data:application/pdf;base64,{{.Result.Data | base64Encode}}" type="application/pdf" width="100%" height="100%"/>
 		     {{ end }}
 		 {{else}}
 			{{ .Message }}
