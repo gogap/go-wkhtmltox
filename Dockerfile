@@ -6,7 +6,7 @@ FROM xujinzheng/wkhtmltopdf:ubuntu
 
 # Install golang and Install go-wkhtmltox
 RUN apt-get update \
-	&& apt-get -y --no-install-recommends install git \
+	&& apt-get -y --no-install-recommends install git wget\
     && mkdir -p /tmp/go \
 	&& cd /tmp/go \
 	&& wget -q https://storage.googleapis.com/golang/go1.9.1.linux-amd64.tar.gz \
@@ -24,7 +24,7 @@ RUN apt-get update \
     && rm -rf /tmp/go/* \
 	&& rm -rf /usr/local/go \
 	&& rm -rf $GOPATH \
-	&& apt-get purge -y --auto-remove git
+	&& apt-get purge -y --auto-remove git wget
 
 WORKDIR /app
 
