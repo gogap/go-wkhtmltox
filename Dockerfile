@@ -12,7 +12,7 @@ RUN apt-get update \
 	&& wget -q https://storage.googleapis.com/golang/go1.9.1.linux-amd64.tar.gz \
 	&& tar -C /usr/local -xzf  go1.9.1.linux-amd64.tar.gz \
     && mkdir -p $HOME/go \
-	&& export GOPATH=$HOME/go && \
+	&& export GOPATH=$HOME/go \
     && export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin \
     && go get github.com/gogap/go-wkhtmltox \
     && cd $GOPATH/src/github.com/gogap/go-wkhtmltox \
