@@ -232,6 +232,11 @@ func (p *WKHtmlToXServer) Run() (err error) {
 	for i := 0; i < len(p.servers); i++ {
 		go func(srv *serverWrapper) {
 			defer wg.Done()
+			shcema := "HTTP"
+			if srv.tls {
+				shcema = "HTTPS"
+			}
+			log.Printf("[%s] Listening on %s\n", shcema, srv.addr)
 			graceful.ListenAndServe(srv)
 		}(p.servers[i])
 	}
