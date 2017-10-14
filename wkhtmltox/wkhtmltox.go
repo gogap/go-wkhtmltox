@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gogap/config"
+	"github.com/pborman/uuid"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -242,15 +246,21 @@ func New(conf config.Configuration) (wkHtmlToX *WKHtmlToX, err error) {
 func (p *WKHtmlToX) Convert(fetcherOpts FetcherOptions, convertOpts ConvertOptions) (ret []byte, err error) {
 
 	cmd := ""
+	ext := ""
 
-	switch convertOpts.(type) {
+	switch o := convertOpts.(type) {
 	case *ToImageOptions:
 		{
 			cmd = "wkhtmltoimage"
+			ext = ".jpg"
+			if len(o.Format) > 0 {
+				ext = "." + o.Format
+			}
 		}
 	case *ToPDFOptions:
 		{
 			cmd = "wkhtmltopdf"
+			ext = ".pdf"
 		}
 	default:
 		err = fmt.Errorf("unkown ConvertOptions type")
@@ -276,15 +286,27 @@ func (p *WKHtmlToX) Convert(fetcherOpts FetcherOptions, convertOpts ConvertOptio
 		return
 	}
 
+	tmpDir, err := ioutil.TempDir("", "go-wkhtmltox")
+	if err != nil {
+		return
+	}
+
+	tmpfileName := filepath.Join(tmpDir, uuid.New()) + ext
+
 	args := convertOpts.toCommandArgs()
 
-	args = append(args, []string{"--quiet", inputMethod, "-"}...)
+	args = append(args, []string{"--quiet", inputMethod, tmpfileName}...)
 
-	result, err := execCommand(p.timeout, data, cmd, args...)
+	_, err = execCommand(p.timeout, data, cmd, args...)
 
 	if err != nil {
 		return
 	}
+
+	defer os.Remove(tmpfileName)
+
+	var result []byte
+	result, err = ioutil.ReadFile(tmpfileName)
 
 	ret = result
 
