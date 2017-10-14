@@ -282,7 +282,7 @@ func (p *WKHtmlToX) Convert(fetcherOpts FetcherOptions, convertOpts ConvertOptio
 	}
 
 	if len(inputMethod) == 0 {
-		err = fmt.Errorf("non input method could be use, please chekc your fetcher options or uri param")
+		err = fmt.Errorf("non input method could be use, please check your fetcher options or uri param")
 		return
 	}
 
