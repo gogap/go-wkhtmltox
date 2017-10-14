@@ -1,0 +1,13 @@
+<html>
+	<body>
+		{{if eq .Code 0}}
+		     {{if eq .To "image"}}
+		     	<img src="data:image/jpeg;base64,{{.Result.Data | base64Encode}}"  />
+		     {{else if eq .To "pdf" }}
+		    	<embed src="data:application/pdf;base64,{{.Result.Data | base64Encode}}" type="application/pdf"/>
+		     {{ end }}
+		 {{else}}
+			{{ .Message }}
+	     {{end}}
+ 	</body>
+</html>

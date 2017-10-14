@@ -31,7 +31,7 @@ go-wkhtmltox
 {
 
 	service {
-		path = "/v1" // path prefix
+		path = "/v1"
 		
 		cors {
 			allowed-origins = ["*"]
@@ -39,30 +39,30 @@ go-wkhtmltox
 
 		gzip-enabled = true
 
-
-		// can start both http and https
 		http {
-			address = "0.0.0.0:8080"
+			address = ":8080"
 			enabled = true
 		}
 
 		https {
-			address = "0.0.0.0:443"
+			address = ":443"
 			enabled = false
 			cert    = ""
 			key     = ""
 		}
 
-		// it's the template for response
 		templates  {
-			render-data {
-				template = "templates/render_data.tmpl"
+			render-html {
+				template = "templates/render_html.tmpl"
+			}
+
+			binary {
+				template = "templates/binary.tmpl"
 			}
 		}
 	}
 
 	wkhtmltox {
-		// the way for fetch data, default is pass the url directly to wkhtmltox
 		fetchers {
 			f1 {
 				driver = http
@@ -190,6 +190,8 @@ curl -X POST \
     }'
 ```
 
+> if you enabled gzip, you should add arg `--compressed` to curl
+
 #### Screenshot
 
 ![bing.com](https://github.com/gogap/repo-assets/raw/master/go-wkhtmltox/go-wkhtmltox-render-screenshot.png)
@@ -215,7 +217,7 @@ we could add `template` to render as different response, we have another example
 	"converter":{
 		"uri": "https://www.bing.com"
 	},
-	"template": "render-data"
+	"template": "render-html"
 }
 ```
 
@@ -231,6 +233,79 @@ the response is
 
 So, the template will render at brower directly. you could add more your templates
 
+#### Template funcs
+
+Func|usage
+:--|:--
+base64Encode|encode value to base64 string
+base64Decode|decode base64 string to string
+jsonify|marshal object
+md5|string md5 hash
+toBytes|convert value to []byte
+htmlEscape|for html safe
+htmlUnescape|unescape html
+
+#### Template Args
+
+```go
+type TemplateArgs struct {
+	To string
+	ConvertResponse
+	Response *RespHelper
+}
+
+type ConvertResponse struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Result  interface{} `json:"result"`
+}
+```
+
+#### Internal templates
+
+> at templates dir
+
+
+Name|Usage
+:--|:--
+ |default template, retrun `code`,`message`, `result`
+render-html|render data to html
+binary|you cloud use curl to download directly
+
+##### use render-html
+
+```bash
+curl -X POST \
+  http://IP:8080/v1/convert \
+  -H 'accept-encoding: gzip' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -d '{
+	"to" : "image",
+	"converter":{
+		"uri": "https://www.bing.com"
+	},
+	"template": "render-html"
+}' --compressed -o bing.html
+```
+
+
+##### use binary
+
+```bash
+curl -X POST \
+  http://IP:8080/v1/convert \
+  -H 'accept-encoding: gzip' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -d '{
+	"to" : "image",
+	"converter":{
+		"uri": "https://www.bing.com"
+	},
+	"template": "binary"
+}' --compressed -o bing.jpg
+```
 
 
 # Use this package as libary

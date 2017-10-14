@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/rs/cors"
+	"github.com/spf13/cast"
 	"github.com/urfave/cli"
 	"github.com/urfave/negroni"
 )
@@ -25,7 +26,7 @@ import (
 )
 
 const (
-	defaultTemplateText = `{"code":{{.Code}},"message":"{{.Message}}"{{if .Result}},"result":{{.Result|Jsonify}}{{end}}}`
+	defaultTemplateText = `{"code":{{.Code}},"message":"{{.Message}}"{{if .Result}},"result":{{.Result|jsonify}}{{end}}}`
 )
 
 var (
@@ -47,6 +48,12 @@ type ConvertArgs struct {
 	Template  string                   `json:"template"`
 }
 
+type TemplateArgs struct {
+	To string
+	ConvertResponse
+	Response *RespHelper
+}
+
 type ConvertResponse struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
@@ -59,7 +66,7 @@ func main() {
 
 	defer func() {
 		if err != nil {
-			fmt.Printf("[go-wkhtmltox]: %s\n", err.Error())
+			log.Printf("[go-wkhtmltox]: %s\n", err.Error())
 		}
 	}()
 
@@ -203,32 +210,38 @@ func run(ctx *cli.Context) (err error) {
 	return
 }
 
-func writeResp(rw http.ResponseWriter, converArgs ConvertArgs, resp ConvertResponse) {
+func writeResp(rw http.ResponseWriter, convertArgs ConvertArgs, resp ConvertResponse) {
 
 	var tmpl *template.Template
-	if len(converArgs.Template) == 0 {
+	if len(convertArgs.Template) == 0 {
 		tmpl = defaultTmpl
 	} else {
 		var exist bool
 
-		tmpl, exist = renderTmpls[converArgs.Template]
+		tmpl, exist = renderTmpls[convertArgs.Template]
 		if !exist {
 			tmpl = defaultTmpl
 		}
 	}
 
-	args := map[string]interface{}{
-		"Code":    resp.Code,
-		"Message": resp.Message,
-		"Result":  resp.Result,
-		"Header":  rw.Header(),
-		"To":      converArgs.To,
+	respHelper := newRespHelper(rw)
+
+	args := TemplateArgs{
+		To:              convertArgs.To,
+		ConvertResponse: resp,
+		Response:        respHelper,
 	}
 
-	err := tmpl.Execute(rw, args)
+	buf := bytes.NewBuffer(nil)
+
+	err := tmpl.Execute(buf, args)
 
 	if err != nil {
 		log.Println(err)
+	}
+
+	if !respHelper.Holding() {
+		rw.Write(buf.Bytes())
 	}
 }
 
@@ -316,4 +329,52 @@ func loadTemplates(tmplsConf config.Configuration) (err error) {
 	}
 
 	return
+}
+
+type RespHelper struct {
+	rw   http.ResponseWriter
+	hold bool
+}
+
+func newRespHelper(rw http.ResponseWriter) *RespHelper {
+	return &RespHelper{
+		rw:   rw,
+		hold: false,
+	}
+}
+
+func (p *RespHelper) SetHeader(key, value interface{}) error {
+	k := cast.ToString(key)
+	v := cast.ToString(value)
+
+	p.rw.Header().Set(k, v)
+
+	return nil
+}
+
+func (p *RespHelper) Hold(v interface{}) error {
+	h := cast.ToBool(v)
+	p.hold = h
+
+	return nil
+}
+
+func (p *RespHelper) Holding() bool {
+	return p.hold
+}
+
+func (p *RespHelper) Write(data []byte) error {
+	p.rw.Write(data)
+	return nil
+}
+
+func (p *RespHelper) WriteHeader(code interface{}) error {
+	c, err := cast.ToIntE(code)
+	if err != nil {
+		return err
+	}
+
+	p.rw.WriteHeader(c)
+
+	return nil
 }

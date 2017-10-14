@@ -1,9 +1,0 @@
-<html>
-	<body>
-	     {{if eq .To "image"}}
-	     	<img src="data:image/jpeg;base64,{{.Result.Data | Base64Encode}}"  />
-	     {{else if eq .To "pdf" }}
-	    	<embed src="data:application/pdf;base64,{{.Result.Data | Base64Encode}}" type="application/pdf"/>
-	     {{ end }}
- 	</body>
-</html>
