@@ -10,6 +10,7 @@ import (
 )
 
 import (
+	_ "github.com/gogap/go-wkhtmltox/wkhtmltox/fetcher/data"
 	_ "github.com/gogap/go-wkhtmltox/wkhtmltox/fetcher/http"
 )
 
