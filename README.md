@@ -39,6 +39,10 @@ go-wkhtmltox
 
 		gzip-enabled = true
 
+		graceful {
+			timeout = 10s
+		}
+
 		http {
 			address = ":8080"
 			enabled = true
@@ -64,8 +68,13 @@ go-wkhtmltox
 
 	wkhtmltox {
 		fetchers {
-			f1 {
+			http {
 				driver = http
+				options {}
+			}
+
+			data {
+				driver = data
 				options {}
 			}
 		}
@@ -81,7 +90,7 @@ go-wkhtmltox
 	"to" : "image",
 	"fetcher": {
 		"name": "http",
-		"options": {
+		"params": {
 		}
 	},
 	"converter":{
@@ -99,7 +108,7 @@ Field|Values|Usage
 to|image,pdf|convert to
 fetcher ||if is nil, converter.uri could not be empty, it will pass to wkhtmltox
 fetcher.name||fetcher name in `app.conf`
-fetcher.options ||different fetcher driver has different options
+fetcher.params ||different fetcher driver has different options
 converter||the options for converter
 
 
@@ -199,9 +208,13 @@ curl -X POST \
 ### Template
 
 The defualt template is 
-`{"code":{{.Code}},"message":"{{.Message}}"{{if .Result}},"result":{{.Result|Jsonify}}{{end}}}`
+
+```
+{"code":{{.Code}},"message":"{{.Message}}"{{if .Result}},"result":{{.Result|Jsonify}}{{end}}}
+```
 
 response example:
+
 
 ```json
 {"code":0,"message":"","result":{"data":"bGl.............}}
@@ -307,7 +320,142 @@ curl -X POST \
 }' --compressed -o bing.jpg
 ```
 
+### Fetcher
+
+fetcher is an external source input, sometimes we could not fetch data by url, or the wkthmltox could not access the url because of some auth options
+
+##### Data fetcher
+
+the request contain data
+
+
+```bash
+curl -X POST \
+  http://127.0.0.1:8080/v1/convert \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -d '{
+        "to" : "image",
+        "fetcher" : {
+        	"name": "data",
+        	"params": {
+		"data":"PGh0bWw+CiAgPGJvZHk+CiAgICAgICJIZWxsbyIgV29ybGQKICA8L2JvZHk+CjwvaHRtbD4="
+        	}
+        },
+        "converter":{
+        },
+        "template": "binary"
+}' -o data.jpg
+```
+
+```bash
+> echo PGh0bWw+CiAgPGJvZHk+CiAgICAgICJIZWxsbyIgV29ybGQKICA8L2JvZHk+CjwvaHRtbD4= | base64 -D
+
+
+<html>
+  <body>
+      "Hello" World
+  </body>
+</html>
+```
+
+params:
+
+
+```json
+{
+    "data":"base64string"
+}
+```
+
+
+#### HTTP fetcher
+
+Fetch data by http driver
+
+```bash
+curl -X POST \
+  http://IP:8080/v1/convert \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -d '{
+        "to" : "image",
+        "fetcher" : {
+                "name": "http",
+                "params": {
+                        "url":"https://github.com"
+                }
+        },
+        "converter":{
+        },
+        "template": "render-html"
+}' -o github.html
+```
+
+
+params:
+
+```go
+{
+    "url": "https://github.com",
+    "method": "GET",
+    "headers": {
+        "content-type": "xxx"
+    },
+    "data": "base64string",
+    "replace": {}
+}
+```
+
+
+#### Code your own fetcher
+
+step 1: Implement the following interface
+
+```go
+type Fetcher interface {
+	Fetch(FetchParams) ([]byte, error)
+}
+
+func NewDataFetcher(conf config.Configuration) (dataFetcher fetcher.Fetcher, err error) {
+	dataFetcher = &DataFetcher{}
+	return
+}
+
+```
+
+step 2: Reigister your driver
+
+```go
+func init() {
+	err := fetcher.RegisterFetcher("data", NewDataFetcher)
+
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+step 3: import driver and rebuild
+
+```go
+import (
+	_ "github.com/gogap/go-wkhtmltox/wkhtmltox/fetcher/data"
+	_ "github.com/gogap/go-wkhtmltox/wkhtmltox/fetcher/http"
+)
+```
+
+> make sure the register name is unique
+
+
 
 # Use this package as libary
 
-TODO
+Just import `github.com/gogap/go-wkhtmltox/wkhtmltox`
+
+```go
+htmlToX, err := wkhtmltox.New(wkHtmlToXConf)
+//...
+//...
+convData, err := htmlToX.Convert(fetcherOpts, convertOpts)
+```
