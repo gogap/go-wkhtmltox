@@ -1,5 +1,6 @@
 server:
     image: gogap/go-wkhtmltox:latest
+    command: ["./go-wkhtmltox", "run"]
     ports:
       - 8080:8080
     volumes:
