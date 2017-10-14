@@ -5,12 +5,18 @@ import (
 	"errors"
 	"io"
 	"os/exec"
+	"syscall"
 	"time"
 )
 
 func execCommand(timeout time.Duration, data []byte, name string, args ...string) (result []byte, err error) {
 
 	cmd := exec.Command(name, args...)
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
