@@ -58,29 +58,28 @@ func execCommand(timeout time.Duration, data []byte, name string, args ...string
 	go io.Copy(outBuf, stdout)
 	go io.Copy(errBuf, stderr)
 
-	ch := make(chan struct{})
+	ch := make(chan error)
 
 	go func(cmd *exec.Cmd) {
 		defer close(ch)
-		cmd.Wait()
+		ch <- cmd.Wait()
 	}(cmd)
 
 	select {
-	case <-ch:
+	case err = <-ch:
 	case <-time.After(timeout):
 		cmd.Process.Kill()
 		err = errors.New("execute timeout")
 		return
 	}
 
-	if outBuf.Len() > 0 {
-		return outBuf.Bytes(), nil
+	if err != nil {
+		errStr := errBuf.String()
+		return nil, errors.New(errStr)
 	}
 
-	errStr := errBuf.String()
-
-	if len(errStr) > 0 {
-		return nil, errors.New(errStr)
+	if outBuf.Len() > 0 {
+		return outBuf.Bytes(), nil
 	}
 
 	return
