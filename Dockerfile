@@ -1,4 +1,4 @@
-FROM xujinzheng/wkhtmltopdf:ubuntu
+FROM idocking/wkhtmltopdf:ubuntu
 
 
 ## For chinese user

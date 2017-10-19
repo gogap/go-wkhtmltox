@@ -15,8 +15,14 @@ go-wkhtmltox
 ## Run at docker
 
  ```bash
- docker pull gogap/go-wkhtmltox:latest
- docker run -it -d -p 8080:8080 xujinzheng/go-wkhtmltox:latest
+ docker pull idocking/go-wkhtmltox:latest
+ docker run -it -d -p 8080:8080 idocking/go-wkhtmltox:latest ./go-wkhtmltox run
+ ```
+
+or
+
+ ```bash
+ docker-compose up -d
  ```
 
 > then you could access the 8080 port

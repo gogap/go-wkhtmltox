@@ -1,5 +1,5 @@
 server:
-    image: gogap/go-wkhtmltox:latest
+    image: idocking/go-wkhtmltox:latest
     command: ["./go-wkhtmltox", "run"]
     ports:
       - 8080:8080
