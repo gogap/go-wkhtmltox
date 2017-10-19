@@ -9,7 +9,7 @@ go-wkhtmltox
 > go get github.com/gogap/go-wkhtmltox
 > cd $GOPATH/src/github.com/gogap/go-wkhtmltox
 > go build
-> ./go-wkhtmltox -c app.conf
+> ./go-wkhtmltox run -c app.conf
 ```
 
 ## Run at docker
