@@ -167,6 +167,14 @@ func New(conf config.Configuration) (srv *WKHtmlToXServer, err error) {
 		Methods("POST").
 		HandlerFunc(handleHtmlToX)
 
+	r.PathPrefix(pathPrefix).Path("/ping").
+		Methods("GET").HandlerFunc(
+		func(rw http.ResponseWriter, req *http.Request) {
+			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			rw.Write([]byte("pong"))
+		},
+	)
+
 	n := negroni.Classic()
 
 	n.Use(c) // use cors
