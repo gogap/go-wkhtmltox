@@ -168,7 +168,7 @@ func New(conf config.Configuration) (srv *WKHtmlToXServer, err error) {
 		HandlerFunc(handleHtmlToX)
 
 	r.PathPrefix(pathPrefix).Path("/ping").
-		Methods("GET").HandlerFunc(
+		Methods("GET", "HEAD").HandlerFunc(
 		func(rw http.ResponseWriter, req *http.Request) {
 			rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			rw.Write([]byte("pong"))
