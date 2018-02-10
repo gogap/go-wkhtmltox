@@ -287,7 +287,7 @@ type ConvertResponse struct {
 
 Name|Usage
 :--|:--
- |default template, retrun `code`,`message`, `result`
+ |default template, return `code`,`message`, `result`
 render-html|render data to html
 binary|you cloud use curl to download directly
 
