@@ -38,7 +38,7 @@ or
 
 	service {
 		path = "/v1"
-		
+
 		cors {
 			allowed-origins = ["*"]
 		}
@@ -240,12 +240,12 @@ we could add `template` to render as different response, we have another example
 }
 ```
 
-the response is 
+the response is
 
 ```html
 <html>
 	<body>
-	     	<img src="data:image/jpeg;base64,bGl............"/> 
+	     	<img src="data:image/jpeg;base64,bGl............"/>
  	</body>
 </html>
 ```
