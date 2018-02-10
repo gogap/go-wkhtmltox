@@ -213,7 +213,7 @@ curl -X POST \
 
 ### Template
 
-The defualt template is 
+The default template is
 
 ```
 {"code":{{.Code}},"message":"{{.Message}}"{{if .Result}},"result":{{.Result|Jsonify}}{{end}}}
@@ -250,7 +250,7 @@ the response is
 </html>
 ```
 
-So, the template will render at brower directly. you could add more your templates
+So, the template will render at browser directly. you could add more your templates
 
 #### Template funcs
 
@@ -287,7 +287,7 @@ type ConvertResponse struct {
 
 Name|Usage
 :--|:--
- |default template, retrun `code`,`message`, `result`
+ |default template, return `code`,`message`, `result`
 render-html|render data to html
 binary|you cloud use curl to download directly
 
@@ -328,7 +328,7 @@ curl -X POST \
 
 ### Fetcher
 
-fetcher is an external source input, sometimes we could not fetch data by url, or the wkthmltox could not access the url because of some auth options
+fetcher is an external source input, sometimes we could not fetch data by url, or the wkhtmltox could not access the url because of some auth options
 
 ##### Data fetcher
 
@@ -430,7 +430,7 @@ func NewDataFetcher(conf config.Configuration) (dataFetcher fetcher.Fetcher, err
 
 ```
 
-step 2: Reigister your driver
+step 2: Register your driver
 
 ```go
 func init() {
@@ -455,7 +455,7 @@ import (
 
 
 
-# Use this package as libary
+# Use this package as library
 
 Just import `github.com/gogap/go-wkhtmltox/wkhtmltox`
 
