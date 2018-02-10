@@ -16,7 +16,7 @@ go-wkhtmltox
 
  ```bash
  docker pull idocking/go-wkhtmltox:latest
- docker run -it -d -p 8080:8080 idocking/go-wkhtmltox:latest ./go-wkhtmltox run
+ docker run -it -d -p 8080:8080 idocking/go-wkhtmltox:latest
  ```
 
 or
@@ -26,7 +26,7 @@ or
  ```
 
 > then you could access the 8080 port
-> in osx, you could get the docker ip by command `docker-machine ip`, 
+> in osx, you could get the docker ip by command `docker-machine ip`,
 > and the access service by IP:8080
 
 ## Config
@@ -287,7 +287,7 @@ type ConvertResponse struct {
 
 Name|Usage
 :--|:--
- |default template, return `code`,`message`, `result`
+ |default template, retrun `code`,`message`, `result`
 render-html|render data to html
 binary|you cloud use curl to download directly
 
