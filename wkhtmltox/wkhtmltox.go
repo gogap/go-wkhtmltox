@@ -181,6 +181,7 @@ type FetcherOptions struct {
 }
 
 type WKHtmlToX struct {
+	verbose  bool
 	timeout  time.Duration
 	fetchers map[string]fetcher.Fetcher
 }
@@ -194,6 +195,10 @@ func New(conf config.Configuration) (wkHtmlToX *WKHtmlToX, err error) {
 	commandTimeout := conf.GetTimeDuration("timeout", time.Second*300)
 
 	wk.timeout = commandTimeout
+
+	verbose := conf.GetBoolean("verbose", false)
+
+	wk.verbose = verbose
 
 	fetchersConf := conf.GetConfig("fetchers")
 
@@ -295,9 +300,24 @@ func (p *WKHtmlToX) Convert(fetcherOpts FetcherOptions, convertOpts ConvertOptio
 
 	args := convertOpts.toCommandArgs()
 
-	args = append(args, []string{"--quiet", inputMethod, tmpfileName}...)
+	if p.verbose {
+		args = append(args, []string{inputMethod, tmpfileName}...)
+	} else {
+		args = append(args, []string{"--quiet", inputMethod, tmpfileName}...)
+	}
 
-	_, err = execCommand(p.timeout, data, cmd, args...)
+	var output []byte
+	output, err = execCommand(p.timeout, data, cmd, args...)
+
+	if p.verbose {
+		if len(output) > 0 {
+			fmt.Println("[wkhtmltox][DBG]", string(output))
+		}
+
+		if err != nil {
+			fmt.Println("[wkhtmltox][ERR]", err)
+		}
+	}
 
 	if err != nil {
 		return
