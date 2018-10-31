@@ -3,14 +3,15 @@ package wkhtmltox
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gogap/config"
-	"github.com/pborman/uuid"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gogap/config"
+	"github.com/pborman/uuid"
 
 	"github.com/gogap/go-wkhtmltox/wkhtmltox/fetcher"
 )
@@ -109,6 +110,10 @@ func (p *ToImageOptions) toCommandArgs() []string {
 
 	if p.Height != 0 {
 		args = append(args, []string{"--height", strconv.Itoa(p.Height)}...)
+	}
+
+	if p.Width != 0 {
+		args = append(args, []string{"--width", strconv.Itoa(p.Width)}...)
 	}
 
 	extArgs := p.Extend.toCommandArgs()
