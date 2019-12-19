@@ -116,6 +116,12 @@ func (p *ToImageOptions) toCommandArgs() []string {
 		args = append(args, []string{"--width", strconv.Itoa(p.Width)}...)
 	}
 
+	if p.Quality >= 0 && p.Quality <= 100 {
+		args = append(args, []string{"--quality", strconv.Itoa(p.Quality)}...)
+	} else {
+		args = append(args, []string{"--quality", "94"}...)
+	}
+
 	extArgs := p.Extend.toCommandArgs()
 
 	args = append(args, extArgs...)

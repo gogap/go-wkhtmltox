@@ -29,17 +29,18 @@ func main() {
 	app.Usage = "A server for wkhtmltopdf and wkhtmltoimage"
 
 	app.Commands = cli.Commands{
-		cli.Command{
+		&cli.Command{
 			Name:   "run",
 			Usage:  "run go-wkhtmltox service",
 			Action: run,
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "config,c",
-					Usage: "config filename",
-					Value: "app.conf",
+				&cli.StringFlag{
+					Name:    "config",
+					Usage:   "config filename",
+					Value:   "app.conf",
+					Aliases: []string{"c"},
 				},
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "cwd",
 					Usage: "change work dir",
 				},
