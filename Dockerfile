@@ -30,4 +30,4 @@ WORKDIR /app
 
 VOLUME /app/templates
 
-CMD ["./go-wkhtmltox"]
+CMD ["./go-wkhtmltox", "run"]
